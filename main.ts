@@ -9,8 +9,14 @@ function sendJsonWithStatus(json : Object, status : number) {
 }
 class Post {
   public id : number
-  public constructor(id : number) {
+  public title : String
+  public desc : String
+  public content : String
+  public constructor(id : number, title : String, desc: String, content : String) {
     this.id = id
+    this.title = title
+    this.desc = desc
+    this.content = content
   }
 }
 // Ideally this should be cached, but for now I won't do it.
