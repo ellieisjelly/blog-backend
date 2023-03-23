@@ -9,10 +9,10 @@ function sendJsonWithStatus(json : Object, status : number) {
 }
 class Post {
   public id : number
-  public title : String
-  public desc : String
-  public content : String
-  public constructor(id : number, title : String, desc: String, content : String) {
+  public title : string
+  public desc : string
+  public content : string
+  public constructor(id : number, title : string, desc: string, content : string) {
     this.id = id
     this.title = title
     this.desc = desc
@@ -25,12 +25,13 @@ async function getPosts(){
   const posts = []
   for await (const path of Deno.readDir('./blogs')) {
     if (path.isFile) {
-      // I need to either make a better format or something that can convert something actually human readable to json
-      const file : Post = JSON.parse(await Deno.readTextFile('./blogs/' + path.name)) 
+      const file : Post = JSON.parse(await Deno.readTextFile('./blogs/' + path.name))
+      // I'm making the content null to save bandwith per file, 
+      // as it's not guaranteed that the person will click on this post.
+      file.content = ""
       posts[file.id] = file
     }
   }
-  console.log(posts)
   return posts
 }
 async function handler(req: Request): Promise<Response> {
