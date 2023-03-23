@@ -20,7 +20,7 @@ class Post {
   }
 }
 // Ideally this should be cached, but for now I won't do it.
-async function getPosts(){
+async function getPosts(sendContent : boolean){
   // Iterates through ./blogs and returns a list of blog posts
   const posts = []
   for await (const path of Deno.readDir('./blogs')) {
@@ -28,7 +28,10 @@ async function getPosts(){
       const file : Post = JSON.parse(await Deno.readTextFile('./blogs/' + path.name))
       // I'm making the content null to save bandwith per file, 
       // as it's not guaranteed that the person will click on this post.
-      file.content = ""
+      // Instead, you're meant to request for a specific post, as to not unecessary download a bunch.
+      if (!sendContent) {
+        file.content = ""
+      }
       posts[file.id] = file
     }
   }
@@ -43,8 +46,17 @@ async function handler(req: Request): Promise<Response> {
     return sendJsonWithStatus({response:"Invalid json, aborting."}, 400)
   }
   switch(json.type) {
+    // Do not send anything else if you want a list of posts.
     case "list":
-      return sendJson({response: "Successful", posts:await getPosts()})
+      return sendJson({response: "Successful", posts:await getPosts(false)})
+    // You are required to send an id argument with the post id
+    case "getPost":
+      for (const post of await getPosts(true)) {
+        if (post.id == json.id) {
+          return sendJson({response: "Successful", post:post})
+        }
+      }
+      return sendJsonWithStatus({response:"Could not find file"}, 404)
     default:
       return sendJsonWithStatus({response:"Missing valid type, aborting"}, 400)
   }
