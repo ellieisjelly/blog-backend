@@ -1,4 +1,5 @@
 // This makes a post in the right format by taking user input.
+// You are expected to run this locally only to add new blog posts.
 class Post {
     public id : number
     public title : string
