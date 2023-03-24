@@ -12,11 +12,13 @@ class Post {
   public title : string
   public desc : string
   public content : string
-  public constructor(id : number, title : string, desc: string, content : string) {
+  public postDate : Date
+  public constructor(id : number, title : string, desc: string, content : string, postDate : Date) {
     this.id = id
     this.title = title
     this.desc = desc
     this.content = content
+    this.postDate = postDate
   }
 }
 // Ideally this should be cached, but for now I won't do it.
