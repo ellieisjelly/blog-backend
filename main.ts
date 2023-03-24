@@ -7,6 +7,7 @@ function sendJson(json : Object) {
 function sendJsonWithStatus(json : Object, status : number) {
   return new Response(JSON.stringify(json), {headers:{"Content-Type": "application/json"}, status:status})
 }
+// deno-lint-ignore no-unused-vars
 class Post {
   public id : number
   public title : string
@@ -21,23 +22,29 @@ class Post {
     this.postDate = postDate
   }
 }
-// Ideally this should be cached, but for now I won't do it.
+const cache : Post[] = []
+let shouldRefreshCache = true
 async function getPosts(sendContent : boolean){
   // Iterates through ./blogs and returns a list of blog posts
-  const posts = []
-  for await (const path of Deno.readDir('./blogs')) {
-    if (path.isFile) {
-      const file : Post = JSON.parse(await Deno.readTextFile('./blogs/' + path.name))
-      // I'm making the content null to save bandwith per file, 
-      // as it's not guaranteed that the person will click on this post.
-      // Instead, you're meant to request for a specific post, as to not unecessary download a bunch.
-      if (!sendContent) {
-        file.content = ""
+  if (shouldRefreshCache) {
+    shouldRefreshCache = false
+    setTimeout(function() {
+      shouldRefreshCache = true
+    },3600000) // wait 1 hour before refreshing cache again. Note this does reset each time the application is deployed
+    for await (const path of Deno.readDir('./blogs')) {
+      if (path.isFile) {
+        const file : Post = JSON.parse(await Deno.readTextFile('./blogs/' + path.name))
+        // I'm making the content null to save bandwith per file, 
+        // as it's not guaranteed that the person will click on this post.
+        // Instead, you're meant to request for a specific post, as to not unecessary download a bunch.
+        if (!sendContent) {
+          file.content = ""
+        }
+        cache[file.id] = file
       }
-      posts[file.id] = file
     }
   }
-  return posts
+  return cache
 }
 async function handler(req: Request): Promise<Response> {
   let abort = false;
