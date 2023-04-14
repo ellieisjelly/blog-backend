@@ -1,7 +1,6 @@
 {
   "version": "2",
   "remote": {
-    "https://cdn.jsdelivr.net/npm/faunadb@latest/dist/faunadb.js": "a809cbc5b3ea8b546cc118c3b269f5cab93382c4642ff612cde87c975ab4f561",
     "https://cdn.skypack.dev/-/http-cache-semantics@v4.1.1-N0bWdwKGKLbWpVco6TJA/dist=es2019,mode=imports/optimized/http-cache-semantics.js": "d2b8a8ddda629c7a915c269ecad2ba761cacad5c6e21bbf34381def053702294",
     "https://cdn.skypack.dev/-/http-cache-semantics@v4.1.1-N0bWdwKGKLbWpVco6TJA/dist=es2019,mode=types/index.d.ts": "cab425b5559edac18327eb2c3c0f47e7e9f71b667290b7689faafd28aac69eae",
     "https://cdn.skypack.dev/http-cache-semantics?dts": "351196d5e6d6b0cd41d8cfcc73f9a741532c8ac5ff1686a2c86d554a2a3dc993",
