@@ -13,7 +13,7 @@ const client = new MongoClient({
   }
 })
 interface Post{
-  id: number
+  _id: number
   title: string
   desc: string
   content: string
@@ -46,7 +46,7 @@ async function getSinglePost(id : number) {
 }
 async function registerPost(post : {id: number, title: string, desc: string, content: string, postDate: Date}) {
   await postDB.insertOne({
-    id: post.id,
+    _id: post.id,
     title: post.title,
     desc: post.desc,
     content: post.content,
@@ -91,9 +91,7 @@ async function getPostList(req: Request) {
 }
 async function getPost(req: Request){
   const { error, body } = await validateRequest(req, {
-    POST: {
-      body: ["id"]
-    }
+    POST: {}
   })
   if (error) {
     return json({error: error.message}, {status: error.status})
@@ -104,14 +102,13 @@ async function getPost(req: Request){
 }
 async function makePost(req: Request){
   const { error, body } = await validateRequest(req, {
-    POST: {
-      body: ["id"]
-    }
+    POST: {}
   })
   if (error) {
     return json({error: error.message}, {status: error.status})
   }
   const post = body as {id: number, title: string, desc: string, content: string, postDate: Date}
+  console.log(post)
   await registerPost(post)
   return json({})
 }
