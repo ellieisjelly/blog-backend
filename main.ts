@@ -3,7 +3,7 @@ import {
   MongoClient,
 } from "https://deno.land/x/atlas_sdk@v1.1.1/mod.ts";
 import {config} from 'https://deno.land/x/dotenv@v3.2.2/mod.ts'
-config({export: true, path:".env"})
+config({export: true})
 const client = new MongoClient({
   endpoint: Deno.env.get("endpoint") || "",
   dataSource: "Blog",
