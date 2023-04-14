@@ -19,7 +19,7 @@ interface Post{
   postDate: Date
   e: boolean
 }
-const db = client.database("blog")
+const db = client.database("blogTest")
 const postDB = db.collection<Post>("posts")
 async function getPosts(){
   const posts = await postDB.find({e:true})
@@ -70,10 +70,15 @@ async function makePost(req: Request){
   if (error) {
     return json({error: error.message}, {status: error.status})
   }
-  const post = await req.json() as {id: number, title: string, desc: string, content: string, postDate: Date}
-  console.log(post)
-  await registerPost(post)
-  return json(post)
+  const post = await req.json() // as {id: number, title: string, desc: string, content: string, postDate: Date, auth:password}
+  if (post.auth == Deno.env.get("secretPassword")) {
+    console.log(post)
+    await registerPost(post)
+    return json(post)
+  } else {
+    return json({error: "Could not authenticate."})
+  }
+
 }
 async function deletePost(req: Request) {
   const { error } = await validateRequest(req, {
@@ -82,8 +87,12 @@ async function deletePost(req: Request) {
   if (error) {
     return json({error:error.message}, {status: error.status})
   }
-  const args = await req.json() as {id: number}
-  removePost(args.id)
-  return json({})
+  const args = await req.json() // as {id: number, auth:password}
+  if (args.auth == Deno.env.get("secretPassword")) {
+    removePost(args.id)
+    return json({})
+  } else {
+    return json({error: "Could not authenticate."})
+  }
 }
 serve({"/getPosts": getPostList, "/getPost": getPost, "/publishPost" : makePost, "/removePost" : deletePost})
