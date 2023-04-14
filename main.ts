@@ -19,7 +19,7 @@ interface Post{
   postDate: Date
   e: boolean
 }
-const db = client.database("blogTest")
+const db = client.database("blog")
 const postDB = db.collection<Post>("posts")
 async function getPosts(){
   const posts = await postDB.find({e:true})
