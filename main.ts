@@ -54,7 +54,7 @@ async function getPostList(req: Request) {
     GET: {}
   })
   if (error) {
-    return json({error: error.message}, {status: error.status, headers:corsHeader()})
+    return json({error: error.message}, {headers:corsHeader()})
   }
   const posts = await getPosts()
   return json({post: posts}, {headers:corsHeader()})
@@ -64,7 +64,7 @@ async function getPost(req: Request){
     POST: {}
   })
   if (error) {
-    return json({error: error.message}, {status: error.status, headers:corsHeader()})
+    return json({error: error.message}, {headers:corsHeader()})
   }
   const id = await req.json() as {id : number}
   const post = await getSinglePost(id.id)
@@ -75,7 +75,7 @@ async function makePost(req: Request){
     POST: {}
   })
   if (error) {
-    return json({error: error.message}, {status: error.status, headers:corsHeader()})
+    return json({error: error.message}, {headers:corsHeader()})
   }
   const post = await req.json() // as {id: number, title: string, desc: string, content: string, postDate: Date, auth:password}
   if (post.auth == Deno.env.get("secretPassword")) {
@@ -93,7 +93,7 @@ async function deletePost(req: Request) {
     POST: {}
   })
   if (error) {
-    return json({error:error.message}, {status: error.status, headers:corsHeader()})
+    return json({error:error.message}, {headers:corsHeader()})
   }
   const args = await req.json() // as {id: number, auth:password}
   if (args.auth == Deno.env.get("secretPassword")) {
@@ -108,7 +108,7 @@ async function validatePassword(req: Request) {
     POST: {}
   })
   if (error) {
-    return json({error:error.message}, {status: error.status, headers:corsHeader()})
+    return json({error:error.message})
   }
   const args = await req.json() // as {id: number, auth:password}
   if (args.auth == Deno.env.get("secretPassword")) {
