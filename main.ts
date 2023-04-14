@@ -28,6 +28,7 @@ function corsHeader() : HeadersInit {
   header.set("Access-Control-Allow-Origin", "*")
   header.set("Access-Control-Request-Method", "GET, POST")
   header.set("Access-Control-Request-Headers", "X-PINGOTHER, Content-Type")
+  header.set("Access-Control-Allow-Header", "*")
   return header
 }
 async function getPosts(){
