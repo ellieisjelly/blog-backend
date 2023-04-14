@@ -109,7 +109,7 @@ async function validatePassword(req: Request) {
     POST: {}
   })
   if (error) {
-    return json({error:error.message})
+    return json({error:error.message}, {headers:corsHeader()})
   }
   const args = await req.json() // as {id: number, auth:password}
   if (args.auth == Deno.env.get("secretPassword")) {
