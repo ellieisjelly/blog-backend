@@ -1,12 +1,26 @@
-import {serve} from "https://deno.land/std@0.180.0/http/server.ts";
-// deno-lint-ignore ban-types
-function sendJson(json : Object) {
-  return new Response(JSON.stringify(json), {headers:{"Content-Type": "application/json"}, status:200}) // 200 = successful
+import {serve, json, validateRequest} from "https://deno.land/x/sift@0.6.0/mod.ts";
+import {
+  MongoClient,
+  ObjectId,
+} from "https://deno.land/x/atlas_sdk@v1.1.1/mod.ts";
+import {config} from 'https://deno.land/x/dotenv/mod.ts'
+config({export: true, path:".env"})
+const client = new MongoClient({
+  endpoint: Deno.env.get("endpoint"),
+  dataSource: "Blog",
+  auth: {
+    apiKey: Deno.env.get("key")
+  }
+})
+interface PostSchema {
+  id: number
+  title: string
+  desc: string
+  content: string
+  postDate: Date
 }
-// deno-lint-ignore ban-types
-function sendJsonWithStatus(json : Object, status : number) {
-  return new Response(JSON.stringify(json), {headers:{"Content-Type": "application/json"}, status:status})
-}
+const db = client.database("blog")
+const posts = db.collection<PostSchema>("posts")
 // deno-lint-ignore no-unused-vars
 class Post {
   public id : number
@@ -22,30 +36,25 @@ class Post {
     this.postDate = postDate
   }
 }
-const cache : Post[] = []
-let shouldRefreshCache = true
 async function getPosts(sendContent : boolean){
   // Iterates through ./blogs and returns a list of blog posts
-  if (shouldRefreshCache) {
-    shouldRefreshCache = false
-    setTimeout(function() {
-      shouldRefreshCache = true
-    },3600000) // wait 1 hour before refreshing cache again. Note this does reset each time the application is deployed
-    for await (const path of Deno.readDir('./blogs')) {
-      if (path.isFile) {
-        const file : Post = JSON.parse(await Deno.readTextFile('./blogs/' + path.name))
-        // I'm making the content null to save bandwith per file, 
-        // as it's not guaranteed that the person will click on this post.
-        // Instead, you're meant to request for a specific post, as to not unecessary download a bunch.
-        if (!sendContent) {
-          file.content = ""
-        }
-        cache[file.id] = file
+  const cache = []
+  for await (const path of Deno.readDir('./blogs')) {
+    if (path.isFile) {
+      const file : Post = JSON.parse(await Deno.readTextFile('./blogs/' + path.name))
+      // I'm making the content null to save bandwith per file, 
+      // as it's not guaranteed that the person will click on this post.
+      // Instead, you're meant to request for a specific post, as to not unecessary download a bunch.
+      if (!sendContent) {
+        file.content = ""
       }
+      cache[file.id] = file
     }
   }
   return cache
 }
+
+/*
 async function handler(req: Request): Promise<Response> {
   let abort = false;
   const json = await req.json().catch(() => {
@@ -69,5 +78,39 @@ async function handler(req: Request): Promise<Response> {
     default:
       return sendJsonWithStatus({response:"Missing valid type, aborting"}, 400)
   }
+}*/
+async function getPostList(req: Request) {
+  const { error } = await validateRequest(req, {
+    GET: {}
+  })
+  if (error) {
+    return json({error: error.message}, {status: error.status})
+  }
+  const quotes = await getPosts(false)
+  return json({quotes})
 }
-serve(handler, { port: 80, hostname:"192.168.1.69" })
+async function getPost(req: Request){
+  const { error, body } = await validateRequest(req, {
+    POST: {
+      body: ["id"]
+    }
+  })
+  if (error) {
+    return json({error: error.message}, {status: error.status})
+  }
+  const posts = await getPosts(true)
+  const id = body as {id : number}
+  return json({post:posts[id.id]})
+}
+async function makePost(req: Request){
+  const { error, body } = await validateRequest(req, {
+    POST: {
+      body: ["id"]
+    }
+  })
+  if (error) {
+    return json({error: error.message}, {status: error.status})
+  }
+  return json({})
+}
+serve({"/getPosts": getPostList, "/getPost": getPost, "/publishPost" : makePost})
