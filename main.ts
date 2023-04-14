@@ -74,9 +74,10 @@ async function makePost(req: Request){
   if (post.auth == Deno.env.get("secretPassword")) {
     console.log(post)
     await registerPost(post)
+    post.auth = true
     return json(post)
   } else {
-    return json({error: "Could not authenticate."})
+    return json({auth: false, error: "Could not authenticate."})
   }
 
 }
@@ -90,9 +91,23 @@ async function deletePost(req: Request) {
   const args = await req.json() // as {id: number, auth:password}
   if (args.auth == Deno.env.get("secretPassword")) {
     removePost(args.id)
-    return json({})
+    return json({auth: true})
   } else {
-    return json({error: "Could not authenticate."})
+    return json({auth: false, error: "Could not authenticate."})
   }
 }
-serve({"/getPosts": getPostList, "/getPost": getPost, "/publishPost" : makePost, "/removePost" : deletePost})
+async function validatePassword(req: Request) {
+  const { error } = await validateRequest(req, {
+    POST: {}
+  })
+  if (error) {
+    return json({error:error.message}, {status: error.status})
+  }
+  const args = await req.json() // as {id: number, auth:password}
+  if (args.auth == Deno.env.get("secretPassword")) {
+    return json({auth: true})
+  } else {
+    return json({auth: false, error: "Could not authenticate."})
+  }
+}
+serve({"/getPosts": getPostList, "/getPost": getPost, "/publishPost" : makePost, "/removePost" : deletePost, "/validatePassword" : validatePassword})
