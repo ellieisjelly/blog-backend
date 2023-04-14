@@ -26,8 +26,6 @@ const postDB = db.collection<Post>("posts")
 function corsHeader() : HeadersInit {
   let header = new Headers()
   header.set("Access-Control-Allow-Origin", "*")
-  header.set("Access-Control-Request-Method", "*")
-  header.set("Access-Control-Request-Headers", "*")
   header.set("Access-Control-Allow-Headers", "*")
   return header
 }
