@@ -23,6 +23,11 @@ interface Post{
 }
 const db = client.database("blog")
 const postDB = db.collection<Post>("posts")
+function corsHeader() : HeadersInit {
+  let header = new Headers()
+  header.set("Access-Control-Allow-Origin", "*")
+  return header
+}
 async function getPosts(){
   const posts = await postDB.find({e:true})
   return posts
@@ -49,37 +54,37 @@ async function getPostList(req: Request) {
     GET: {}
   })
   if (error) {
-    return json({error: error.message}, {status: error.status})
+    return json({error: error.message}, {status: error.status, headers:corsHeader()})
   }
   const posts = await getPosts()
-  return json({post: posts})
+  return json({post: posts}, {headers:corsHeader()})
 }
 async function getPost(req: Request){
   const { error} = await validateRequest(req, {
     POST: {}
   })
   if (error) {
-    return json({error: error.message}, {status: error.status})
+    return json({error: error.message}, {status: error.status, headers:corsHeader()})
   }
   const id = await req.json() as {id : number}
   const post = await getSinglePost(id.id)
-  return json({post:post})
+  return json({post:post}, {headers:corsHeader()})
 }
 async function makePost(req: Request){
   const { error} = await validateRequest(req, {
     POST: {}
   })
   if (error) {
-    return json({error: error.message}, {status: error.status})
+    return json({error: error.message}, {status: error.status, headers:corsHeader()})
   }
   const post = await req.json() // as {id: number, title: string, desc: string, content: string, postDate: Date, auth:password}
   if (post.auth == Deno.env.get("secretPassword")) {
     console.log(post)
     await registerPost(post)
     post.auth = true
-    return json(post)
+    return json(post, {headers:corsHeader()})
   } else {
-    return json({auth: false, error: "Could not authenticate."})
+    return json({auth: false, error: "Could not authenticate."}, {headers:corsHeader()})
   }
 
 }
@@ -88,14 +93,14 @@ async function deletePost(req: Request) {
     POST: {}
   })
   if (error) {
-    return json({error:error.message}, {status: error.status})
+    return json({error:error.message}, {status: error.status, headers:corsHeader()})
   }
   const args = await req.json() // as {id: number, auth:password}
   if (args.auth == Deno.env.get("secretPassword")) {
     removePost(args.id)
-    return json({auth: true})
+    return json({auth: true}, {headers:corsHeader()})
   } else {
-    return json({auth: false, error: "Could not authenticate."})
+    return json({auth: false, error: "Could not authenticate."}, {headers:corsHeader()})
   }
 }
 async function validatePassword(req: Request) {
@@ -103,13 +108,13 @@ async function validatePassword(req: Request) {
     POST: {}
   })
   if (error) {
-    return json({error:error.message}, {status: error.status})
+    return json({error:error.message}, {status: error.status, headers:corsHeader()})
   }
   const args = await req.json() // as {id: number, auth:password}
   if (args.auth == Deno.env.get("secretPassword")) {
-    return json({auth: true})
+    return json({auth: true}, {headers:corsHeader()})
   } else {
-    return json({auth: false, error: "Could not authenticate."})
+    return json({auth: false, error: "Could not authenticate."}, {headers:corsHeader()})
   }
 }
 serve({"/getPosts": getPostList, "/getPost": getPost, "/publishPost" : makePost, "/removePost" : deletePost, "/validatePassword" : validatePassword})
