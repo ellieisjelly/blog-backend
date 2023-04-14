@@ -1,44 +1,30 @@
 import {serve, json, validateRequest} from "https://deno.land/x/sift@0.6.0/mod.ts";
 import {
   MongoClient,
-  ObjectId,
+  //ObjectId,
 } from "https://deno.land/x/atlas_sdk@v1.1.1/mod.ts";
-import {config} from 'https://deno.land/x/dotenv/mod.ts'
+import {config} from 'https://deno.land/x/dotenv@v3.2.2/mod.ts'
 config({export: true, path:".env"})
 const client = new MongoClient({
-  endpoint: Deno.env.get("endpoint"),
+  endpoint: Deno.env.get("endpoint") || "",
   dataSource: "Blog",
   auth: {
-    apiKey: Deno.env.get("key")
+    apiKey: Deno.env.get("key") || ""
   }
 })
-interface PostSchema {
+interface Post{
   id: number
   title: string
   desc: string
   content: string
   postDate: Date
+  e: boolean
 }
-const db = client.database("blog")
-const posts = db.collection<PostSchema>("posts")
-// deno-lint-ignore no-unused-vars
-class Post {
-  public id : number
-  public title : string
-  public desc : string
-  public content : string
-  public postDate : Date
-  public constructor(id : number, title : string, desc: string, content : string, postDate : Date) {
-    this.id = id
-    this.title = title
-    this.desc = desc
-    this.content = content
-    this.postDate = postDate
-  }
-}
-async function getPosts(sendContent : boolean){
+const db = client.database("blogTest")
+const postDB = db.collection<Post>("posts")
+async function getPosts(){
   // Iterates through ./blogs and returns a list of blog posts
-  const cache = []
+  /*const cache = []
   for await (const path of Deno.readDir('./blogs')) {
     if (path.isFile) {
       const file : Post = JSON.parse(await Deno.readTextFile('./blogs/' + path.name))
@@ -51,9 +37,23 @@ async function getPosts(sendContent : boolean){
       cache[file.id] = file
     }
   }
-  return cache
+  return cache*/
+  const posts = await postDB.find({e:true})
+  return posts
 }
-
+async function getSinglePost(id : number) {
+  return await postDB.findOne({id: id})
+}
+async function registerPost(post : {id: number, title: string, desc: string, content: string, postDate: Date}) {
+  await postDB.insertOne({
+    id: post.id,
+    title: post.title,
+    desc: post.desc,
+    content: post.content,
+    postDate: post.postDate,
+    e: true
+  })
+}
 /*
 async function handler(req: Request): Promise<Response> {
   let abort = false;
@@ -86,8 +86,8 @@ async function getPostList(req: Request) {
   if (error) {
     return json({error: error.message}, {status: error.status})
   }
-  const quotes = await getPosts(false)
-  return json({quotes})
+  const posts = await getPosts()
+  return json({post: posts})
 }
 async function getPost(req: Request){
   const { error, body } = await validateRequest(req, {
@@ -98,9 +98,9 @@ async function getPost(req: Request){
   if (error) {
     return json({error: error.message}, {status: error.status})
   }
-  const posts = await getPosts(true)
   const id = body as {id : number}
-  return json({post:posts[id.id]})
+  const post = await getSinglePost(id.id)
+  return json({post:post})
 }
 async function makePost(req: Request){
   const { error, body } = await validateRequest(req, {
@@ -111,6 +111,8 @@ async function makePost(req: Request){
   if (error) {
     return json({error: error.message}, {status: error.status})
   }
+  const post = body as {id: number, title: string, desc: string, content: string, postDate: Date}
+  await registerPost(post)
   return json({})
 }
 serve({"/getPosts": getPostList, "/getPost": getPost, "/publishPost" : makePost})
