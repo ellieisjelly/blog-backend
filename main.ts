@@ -83,7 +83,7 @@ async function makePost(req: Request){
     console.log(post)
     await registerPost(post)
     post.auth = true
-    return json(JSON.stringify(post), {headers:corsHeader()})
+    return json(post, {headers:corsHeader()})
   } else {
     return json({auth: false, error: "Could not authenticate."}, {headers:corsHeader()})
   }
