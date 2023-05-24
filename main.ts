@@ -27,7 +27,7 @@ interface Post {
   e: boolean;
 }
 const db = client.database("blog");
-const postDB = db.collection<Post>("posts-testing");
+const postDB = db.collection<Post>("posts");
 function corsHeader(): HeadersInit {
   let header = new Headers();
   header.set("Access-Control-Allow-Origin", "*");
