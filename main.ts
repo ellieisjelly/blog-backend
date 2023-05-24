@@ -64,19 +64,7 @@ async function removePost(id: number) {
   await postDB.deleteOne({ _id: id });
 }
 async function updatePost(id: any, content: string) {
-  console.log("id: " + id + ", content: " + content);
-  const { matchedCount, modifiedCount, upsertedId } = await postDB.updateOne(
-    { _id: parseInt(id) },
-    { $set: { content: content } }
-  );
-  console.log(
-    "matched count: " +
-      matchedCount +
-      ", modifiedCount: " +
-      modifiedCount +
-      ", whatever this is: " +
-      upsertedId
-  );
+  await postDB.updateOne({ _id: parseInt(id) }, { $set: { content: content } });
 }
 async function getPostList(req: Request) {
   const { error } = await validateRequest(req, {
