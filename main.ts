@@ -27,7 +27,7 @@ interface Post {
   e: boolean;
 }
 const db = client.database("blog");
-const postDB = db.collection<Post>("posts");
+const postDB = db.collection<Post>("posts-testing");
 function corsHeader(): HeadersInit {
   let header = new Headers();
   header.set("Access-Control-Allow-Origin", "*");
@@ -63,7 +63,21 @@ async function registerPost(post: {
 async function removePost(id: number) {
   await postDB.deleteOne({ _id: id });
 }
-
+async function updatePost(id: any, content: string) {
+  console.log("id: " + id + ", content: " + content);
+  const { matchedCount, modifiedCount, upsertedId } = await postDB.updateOne(
+    { _id: parseInt(id) },
+    { $set: { content: content } }
+  );
+  console.log(
+    "matched count: " +
+      matchedCount +
+      ", modifiedCount: " +
+      modifiedCount +
+      ", whatever this is: " +
+      upsertedId
+  );
+}
 async function getPostList(req: Request) {
   const { error } = await validateRequest(req, {
     GET: {},
@@ -123,6 +137,24 @@ async function deletePost(req: Request) {
     );
   }
 }
+async function updatePostContent(req: Request) {
+  const { error } = await validateRequest(req, {
+    POST: {},
+  });
+  if (error) {
+    return json({ error: error.message }, { headers: corsHeader() });
+  }
+  const args = await req.json(); // as {id: number, content: string, auth:password}
+  if (args.auth == Deno.env.get("secretPassword")) {
+    updatePost(args.id, args.content);
+    return json({ auth: true }, { headers: corsHeader() });
+  } else {
+    return json(
+      { auth: false, error: "Could not authenticate." },
+      { headers: corsHeader() }
+    );
+  }
+}
 async function validatePassword(req: Request) {
   const { error } = await validateRequest(req, {
     POST: {},
@@ -145,5 +177,6 @@ serve({
   "/getPost": getPost,
   "/publishPost": makePost,
   "/removePost": deletePost,
+  "/updatePost": updatePostContent,
   "/validatePassword": validatePassword,
 });
