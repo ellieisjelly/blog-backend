@@ -169,7 +169,7 @@ async function getFeed(req: Request) {
     return json({ error: error.message }, { headers: corsHeader() });
   }
   const feed = new Feed({
-    title: "Personal Blog",
+    title: "Caio's Blog",
     description: "This is the RSS feed for my personal blog",
     id: "https://api.caiomgt.com/feed",
     language: "en",
