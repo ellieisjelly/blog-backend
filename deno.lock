@@ -65,9 +65,7 @@
   },
   "npm": {
     "specifiers": {
-      "feed": "feed@4.2.2",
-      "feed@4.2.2": "feed@4.2.2",
-      "feed@^4.2.2": "feed@4.2.2"
+      "feed": "feed@4.2.2"
     },
     "packages": {
       "feed@4.2.2": {
