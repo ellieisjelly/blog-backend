@@ -6,7 +6,7 @@ import {
 import { MongoClient } from "https://deno.land/x/atlas_sdk@v1.1.1/mod.ts";
 import { config } from "https://deno.land/x/dotenv@v3.2.2/mod.ts";
 import { Int32 } from "https://deno.land/x/web_bson@v0.3.0/mod.js";
-import { Feed } from "npm:feed";
+import { Feed } from "https://esm.sh/feed";
 try {
   config({ export: true });
 } catch (err: any) {
