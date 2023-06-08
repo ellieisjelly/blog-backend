@@ -6,7 +6,6 @@ import {
 import { MongoClient } from "https://deno.land/x/atlas_sdk@v1.1.1/mod.ts";
 import { config } from "https://deno.land/x/dotenv@v3.2.2/mod.ts";
 import { Int32 } from "https://deno.land/x/web_bson@v0.3.0/mod.js";
-import { Feed } from "npm:feed";
 try {
   config({ export: true });
 } catch (err: any) {
@@ -161,39 +160,6 @@ async function validatePassword(req: Request) {
     );
   }
 }
-async function getFeed(req: Request) {
-  const { error } = await validateRequest(req, {
-    GET: {},
-  });
-  if (error) {
-    return json({ error: error.message }, { headers: corsHeader() });
-  }
-  const feed = new Feed({
-    title: "Personal Blog",
-    description: "This is the RSS feed for my personal blog",
-    id: "https://api.caiomgt.com/feed",
-    language: "en",
-    copyright: "",
-    author: {
-      name: "Caio Mendes",
-      email: "caio@caiomgt.com",
-    },
-  });
-  const posts = await getPosts();
-  posts.forEach((post) => {
-    feed.addItem({
-      title: post.title,
-      id: post._id.toString(),
-      link: "https://www.caiomgt.com/blog/post?id=" + post._id,
-      description: post.desc,
-      content: post.content,
-      date: new Date(post.postDate),
-    });
-  });
-  return new Response(feed.rss2(), {
-    headers: { "Content-Type": "application/rss+xml" },
-  });
-}
 serve({
   "/getPosts": getPostList,
   "/getPost": getPost,
@@ -201,5 +167,4 @@ serve({
   "/removePost": deletePost,
   "/updatePost": updatePostContent,
   "/validatePassword": validatePassword,
-  "/feed": getFeed,
 });

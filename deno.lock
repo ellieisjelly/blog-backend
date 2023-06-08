@@ -62,28 +62,5 @@
     "https://esm.sh/v115/preact@10.10.6/src/jsx.d.ts": "1bb7de31d64cc39b3b07613dc39bff42199ffec4b97ac9168a86f4747a3ec669",
     "https://esm.sh/v115/preact@10.13.2/src/index.d.ts": "65398710de6aa0a07412da79784e05e6e96763f51c7c91b77344d2d0af06385c",
     "https://esm.sh/v115/preact@10.13.2/src/jsx.d.ts": "9ac9b82c199fa7b04748807d750eba1a106c0be52041b8617416f88d6fc0a257"
-  },
-  "npm": {
-    "specifiers": {
-      "feed": "feed@4.2.2"
-    },
-    "packages": {
-      "feed@4.2.2": {
-        "integrity": "sha512-u5/sxGfiMfZNtJ3OvQpXcvotFpYkL0n9u9mM2vkui2nGo8b4wvDkJ8gAkYqbA8QpGyFCv3RK0Z+Iv+9veCS9bQ==",
-        "dependencies": {
-          "xml-js": "xml-js@1.6.11"
-        }
-      },
-      "sax@1.2.4": {
-        "integrity": "sha512-NqVDv9TpANUjFm0N8uM5GxL36UgKi9/atZw+x7YFnQ8ckwFGKrl4xX4yWtrey3UJm5nP1kUbnYgLopqWNSRhWw==",
-        "dependencies": {}
-      },
-      "xml-js@1.6.11": {
-        "integrity": "sha512-7rVi2KMfwfWFl+GpPg6m80IVMWXLRjO+PxTq7V2CDhoGak0wzYzFgUY2m4XJ47OGdXd8eLE8EmwfAmdjw7lC1g==",
-        "dependencies": {
-          "sax": "sax@1.2.4"
-        }
-      }
-    }
   }
 }
