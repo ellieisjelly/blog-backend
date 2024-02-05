@@ -5,11 +5,10 @@ import {
 } from "https://deno.land/x/sift@0.6.0/mod.ts";
 import { MongoClient } from "https://deno.land/x/atlas_sdk@v1.1.1/mod.ts";
 import { config } from "https://deno.land/x/dotenv@v3.2.2/mod.ts";
-import { Int32 } from "https://deno.land/x/web_bson@v0.3.0/mod.js";
 import { Feed } from "https://esm.sh/feed";
 try {
   config({ export: true });
-} catch (err: any) {
+} catch {
   console.log("no .env, probably production server.");
 }
 const client = new MongoClient({
@@ -22,21 +21,37 @@ const client = new MongoClient({
 interface Post {
   _id: number;
   title: string;
+  image?: string;
   desc: string;
   content: string;
   postDate: Date;
-  e: boolean;
 }
-const db = client.database("blog");
+
+interface validatePassReq {
+  auth: string;
+}
+
+interface makePostReq extends validatePassReq, Post {}
+
+interface removePostReq extends validatePassReq {
+  _id: number;
+}
+
+interface updatePostReq extends validatePassReq {
+  _id: number;
+  content: string;
+}
+
+const db = client.database("blogTestV2");
 const postDB = db.collection<Post>("posts");
 function corsHeader(): HeadersInit {
-  let header = new Headers();
+  const header = new Headers();
   header.set("Access-Control-Allow-Origin", "*");
   header.set("Access-Control-Allow-Headers", "*");
   return header;
 }
 async function getPosts() {
-  const posts = await postDB.find({ e: true });
+  const posts = await postDB.find({});
   return posts;
 }
 async function getSinglePost(id: number) {
@@ -45,27 +60,20 @@ async function getSinglePost(id: number) {
   }
   return await postDB.findOne({ _id: id });
 }
-async function registerPost(post: {
-  id: number;
-  title: string;
-  desc: string;
-  content: string;
-  postDate: Date;
-}) {
-  await postDB.insertOne({
-    _id: post.id,
-    title: post.title,
-    desc: post.desc,
-    content: post.content,
-    postDate: post.postDate,
-    e: true,
-  });
+async function registerPost(post: Post) {
+  await postDB.insertOne(post);
 }
 async function removePost(id: number) {
   await postDB.deleteOne({ _id: id });
 }
-async function updatePost(id: any, content: string) {
-  await postDB.updateOne({ _id: parseInt(id) }, { $set: { content: content } });
+async function updatePost(id: string | number, content: string) {
+  let _id;
+  if (typeof id === "string") {
+    _id = parseInt(id);
+  } else {
+    _id = id;
+  }
+  await postDB.updateOne({ _id: id }, { $set: { content: content } });
 }
 async function getPostList(req: Request) {
   const { error } = await validateRequest(req, {
@@ -84,8 +92,8 @@ async function getPost(req: Request) {
   if (error) {
     return json({ error: error.message }, { headers: corsHeader() });
   }
-  const id = (await req.json()) as { id: number };
-  const post = await getSinglePost(id.id);
+  const id = (await req.json()) as { _id: number };
+  const post = await getSinglePost(id._id);
   return json({ post: post }, { headers: corsHeader() });
 }
 async function makePost(req: Request) {
@@ -95,12 +103,11 @@ async function makePost(req: Request) {
   if (error) {
     return json({ error: error.message }, { headers: corsHeader() });
   }
-  const post = await req.json(); // as {id: number, title: string, desc: string, content: string, postDate: Date, auth:password}
+  const post: makePostReq = await req.json();
   if (post.auth == Deno.env.get("secretPassword")) {
     console.log(post);
     await registerPost(post);
-    post.auth = true;
-    return json(post, { headers: corsHeader() });
+    return json({ auth: true }, { headers: corsHeader() });
   } else {
     return json(
       { auth: false, error: "Could not authenticate." },
@@ -115,9 +122,9 @@ async function deletePost(req: Request) {
   if (error) {
     return json({ error: error.message }, { headers: corsHeader() });
   }
-  const args = await req.json(); // as {id: number, auth:password}
+  const args: removePostReq = await req.json(); // as {id: number, auth:password}
   if (args.auth == Deno.env.get("secretPassword")) {
-    removePost(args.id);
+    removePost(args._id);
     return json({ auth: true }, { headers: corsHeader() });
   } else {
     return json(
@@ -133,9 +140,9 @@ async function updatePostContent(req: Request) {
   if (error) {
     return json({ error: error.message }, { headers: corsHeader() });
   }
-  const args = await req.json(); // as {id: number, content: string, auth:password}
+  const args: updatePostReq = await req.json(); // as {id: number, content: string, auth:password}
   if (args.auth == Deno.env.get("secretPassword")) {
-    updatePost(args.id, args.content);
+    updatePost(args._id, args.content);
     return json({ auth: true }, { headers: corsHeader() });
   } else {
     return json(
@@ -151,7 +158,7 @@ async function validatePassword(req: Request) {
   if (error) {
     return json({ error: error.message }, { headers: corsHeader() });
   }
-  const args = await req.json(); // as {id: number, auth:password}
+  const args = await req.json();
   if (args.auth == Deno.env.get("secretPassword")) {
     return json({ auth: true }, { headers: corsHeader() });
   } else {
