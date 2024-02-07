@@ -5,7 +5,7 @@ import {
 } from "https://deno.land/x/sift@0.6.0/mod.ts";
 import { MongoClient } from "https://deno.land/x/atlas_sdk@v1.1.1/mod.ts";
 import { config } from "https://deno.land/x/dotenv@v3.2.2/mod.ts";
-import { Feed } from "https://esm.sh/feed";
+import { Feed } from "https://esm.sh/feed@4.2.2";
 try {
   config({ export: true });
 } catch {
@@ -23,6 +23,7 @@ interface Post {
   title: string;
   image?: string;
   desc: string;
+  tags: string[];
   content: string;
   postDate: Date;
 }
@@ -32,14 +33,9 @@ interface validatePassReq {
 }
 
 interface makePostReq extends validatePassReq, Post {}
-
+interface updatePostReq extends validatePassReq, Post {}
 interface removePostReq extends validatePassReq {
   _id: number;
-}
-
-interface updatePostReq extends validatePassReq {
-  _id: number;
-  content: string;
 }
 
 const db = client.database("blogTestV2");
@@ -66,14 +62,20 @@ async function registerPost(post: Post) {
 async function removePost(id: number) {
   await postDB.deleteOne({ _id: id });
 }
-async function updatePost(id: string | number, content: string) {
-  let _id;
-  if (typeof id === "string") {
-    _id = parseInt(id);
-  } else {
-    _id = id;
-  }
-  await postDB.updateOne({ _id: id }, { $set: { content: content } });
+async function updatePost(post: Post) {
+  console.log(post);
+  await postDB.updateOne(
+    { _id: post._id },
+    {
+      $set: {
+        title: post.title,
+        desc: post.desc,
+        image: post.image,
+        tags: post.tags,
+        content: post.content,
+      },
+    }
+  );
 }
 async function getPostList(req: Request) {
   const { error } = await validateRequest(req, {
@@ -133,7 +135,7 @@ async function deletePost(req: Request) {
     );
   }
 }
-async function updatePostContent(req: Request) {
+async function updatePostReq(req: Request) {
   const { error } = await validateRequest(req, {
     POST: {},
   });
@@ -142,7 +144,7 @@ async function updatePostContent(req: Request) {
   }
   const args: updatePostReq = await req.json(); // as {id: number, content: string, auth:password}
   if (args.auth == Deno.env.get("secretPassword")) {
-    updatePost(args._id, args.content);
+    updatePost(args);
     return json({ auth: true }, { headers: corsHeader() });
   } else {
     return json(
@@ -206,7 +208,7 @@ serve({
   "/getPost": getPost,
   "/publishPost": makePost,
   "/removePost": deletePost,
-  "/updatePost": updatePostContent,
+  "/updatePost": updatePostReq,
   "/validatePassword": validatePassword,
   "/feed": getFeed,
 });
