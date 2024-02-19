@@ -38,7 +38,7 @@ interface removePostReq extends validatePassReq {
   _id: number;
 }
 
-const db = client.database("blogTestV2");
+const db = client.database("blogV2");
 const postDB = db.collection<Post>("posts");
 function corsHeader(): HeadersInit {
   const header = new Headers();
